@@ -1,0 +1,41 @@
+.root{
+    -fx-border-radius: 150;
+    -fx-background-radius: 150;
+    -fx-padding: 5;
+    -fx-scale-shape     : true; 
+    -fx-background-color: linear-gradient(to bottom, rgb(180.0, 193.0, 174.0, 0.5),  rgb(126.0, 150.0, 116.0, 0.5));
+     -fx-glass-color: rgba(95, 158, 160, 0.9);
+}
+.button
+{
+	-fx-background-color: transparent;
+}
+#textnormal
+{
+	-fx-text-fill: black; -fx-font-weight: bold;
+}
+#textred
+{
+	-fx-text-fill: red; -fx-font-weight: bold;
+}
+.modal-dialog {
+  -fx-padding: 20;
+  -fx-spacing: 10;
+  -fx-alignment: center;
+  -fx-font-size: 20;
+  -fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 20%), -fx-glass-color);
+  -fx-border-color: derive(-fx-glass-color, -20%);
+  -fx-border-width: 5;
+  -fx-background-insets: 12;
+  -fx-border-insets: 10;
+  -fx-border-radius: 6;
+  -fx-background-radius: 6;
+}
+
+.modal-dialog:pressed {
+  -fx-cursor: move;
+}
+
+.modal-dialog .button:pressed {
+  -fx-cursor: default;
+}
