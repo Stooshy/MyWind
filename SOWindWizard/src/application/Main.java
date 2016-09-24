@@ -14,6 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.Effect;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -31,8 +32,10 @@ public class Main extends Application
 	private TextField range;
 	private Label xVal;
 	private Label yVal;
+	private Label weather;
 	private IntegerProperty selectedDir;
 	private String outFormat = "%10.1f y | %.1f %%";
+	private double weatherFactor = 1.0;
 
 
 	public void start(Stage primaryStage)
@@ -45,6 +48,53 @@ public class Main extends Application
 				calculateAndShow();
 			});
 			BorderPane root = new BorderPane();
+
+			root.setOnKeyReleased(event -> {
+				if (event.getCode().equals(KeyCode.F1))
+				{
+					new InfoDlg(primaryStage);
+				}
+				else if (event.getCode().equals(KeyCode.R))
+				{
+					weatherFactor = .87;
+					try
+					{
+						double rangeVal = getRangeDouble() * weatherFactor;
+						weather.setText(String.format("Rain %.1f", rangeVal));
+						calculateAndShow();
+					}
+					catch (Exception e)
+					{
+					}
+				}
+				else if (event.getCode().equals(KeyCode.S))
+				{
+					weatherFactor = 1.0;
+					try
+					{
+						double rangeVal = getRangeDouble() * weatherFactor;
+						weather.setText(String.format("Sun %.1f", rangeVal));
+						calculateAndShow();
+					}
+					catch (Exception e)
+					{
+					}
+				}
+				else if (event.getCode().equals(KeyCode.C))
+				{
+					weatherFactor = .93;
+					try
+					{
+						double rangeVal = getRangeDouble() * weatherFactor;
+						weather.setText(String.format("Clouds %.1f", rangeVal));
+						calculateAndShow();
+					}
+					catch (Exception e)
+					{
+					}
+				}
+
+			});
 			StackPane pane = new StackPane();
 			Button info = new Button("?");
 			info.setTranslateY(-65.0);
@@ -58,10 +108,15 @@ public class Main extends Application
 			close.setOnMouseClicked(event -> {
 				Platform.exit();
 			});
+			weather = new Label("Sun");
+			weather.setTranslateY(65.0);
+
 			pane.getChildren().add(createWindRose());
 			pane.getChildren().add(createIOGui());
 			pane.getChildren().add(info);
 			pane.getChildren().add(close);
+			pane.getChildren().add(weather);
+
 			root.setCenter((Node) pane);
 			Scene scene = new Scene(root, 200.0, 200.0);
 			scene.setFill(null);
@@ -206,7 +261,7 @@ public class Main extends Application
 	private void showY(Double value) throws Exception
 	{
 		String directionSign = value > 0.0 ? "^" : "v";
-		double rangeVal = getRangeDouble();
+		double rangeVal = getRangeDouble() * weatherFactor;
 		yVal.setText(String.format(directionSign + outFormat, value / 100.0 * rangeVal, value));
 	}
 
@@ -271,21 +326,30 @@ public class Main extends Application
 			dialog.initOwner(primaryStage);
 			HBox hb = new HBox();
 			Label lb = new Label();
-			lb.setText("By Shotlong \u00a9 2016");
+			String text = "Driver 1,6\nW3/5  1,3\nI3/4   1\ni5      .8\ni6      .7\ni7-9   .6\nPW    .55\nAW    .5\nSW    1\n\nBy Shotlong \u00a9 2016 V1.1";
+			lb.setText(text);
 			lb.setId("textnormal");
 			hb.setId("modal-dialog");
-			Button ok = new Button("close");
-			ok.setOnMouseClicked(event -> {
-				primaryStage.getScene().getRoot().setEffect(null);
-				dialog.close();
+			Button bt = new Button();
+			bt.setOnKeyReleased(event -> {
+				if (event.getCode().equals(KeyCode.ESCAPE))
+				{
+					primaryStage.getScene().getRoot().setEffect(null);
+					dialog.close();
+				}
+
 			});
+			// bt.setVisible(false);
+			hb.getChildren().add(bt);
 			hb.getChildren().add(lb);
-			hb.getChildren().add(ok);
+			lb.requestFocus();
 			dialog.setScene(new Scene(hb, Color.TRANSPARENT));
 			dialog.getScene().getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.getScene().getRoot().setEffect((Effect) new BoxBlur());
 			dialog.setX(primaryStage.getX());
 			dialog.setY(primaryStage.getY());
+			dialog.setWidth(200);
+			dialog.setHeight(200);
 			dialog.show();
 		}
 	}

@@ -19,17 +19,13 @@
 	-fx-text-fill: red; -fx-font-weight: bold;
 }
 .modal-dialog {
-  -fx-padding: 20;
+  -fx-padding: 5;
   -fx-spacing: 10;
   -fx-alignment: center;
-  -fx-font-size: 20;
-  -fx-background-color: linear-gradient(to bottom, derive(-fx-glass-color, 20%), -fx-glass-color);
-  -fx-border-color: derive(-fx-glass-color, -20%);
   -fx-border-width: 5;
+  -fx-background-color: transparent;
   -fx-background-insets: 12;
-  -fx-border-insets: 10;
-  -fx-border-radius: 6;
-  -fx-background-radius: 6;
+  -fx-border-insets: 10;  
 }
 
 .modal-dialog:pressed {
