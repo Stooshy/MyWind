@@ -1,7 +1,7 @@
 /*
  * Decompiled with CFR 0_115.
  */
-package application;
+package application.model;
 
 public final class WindVectorCalculator {
     private static double[] factorsX = new double[]{0.17, 0.21, 0.57, 0.87, 0.98, 0.97, 0.7, 0.53, 0.17, 0.21, 0.57, 0.81, 0.98, 0.97, 0.7, 0.53};

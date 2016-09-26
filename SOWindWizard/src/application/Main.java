@@ -1,137 +1,114 @@
 package application;
 
+import application.gui.InfoDlg;
+import application.gui.InputControl;
+import application.gui.WeatherResult;
+import application.gui.XResult;
+import application.gui.YResult;
+import application.model.WeatherModel;
+import application.model.WeatherModel.Weather;
+import application.model.WindVectorCalculator;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.effect.BoxBlur;
-import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class Main extends Application
 {
-	private TextField wind;
-	private TextField range;
-	private Label xVal;
-	private Label yVal;
-	private Label weather;
+	private InputControl wind;
+	private InputControl range;
+	private XResult xVal;
+	private YResult yVal;
+	private WeatherResult weather;
 	private IntegerProperty selectedDir;
-	private String outFormat = "%10.1f y | %.1f %%";
-	private double weatherFactor = 1.0;
+	private WeatherModel weatherModel;
 
 
 	public void start(Stage primaryStage)
 	{
-		try
-		{
-			primaryStage.setTitle("SO WindVector");
-			selectedDir = new SimpleIntegerProperty();
-			selectedDir.addListener(listener -> {
-				calculateAndShow();
-			});
-			BorderPane root = new BorderPane();
+		primaryStage.setTitle("SO MyWind");
+		selectedDir = new SimpleIntegerProperty();
+		selectedDir.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+			calculateAndShow();
+		});
 
-			root.setOnKeyReleased(event -> {
-				if (event.getCode().equals(KeyCode.F1))
-				{
-					new InfoDlg(primaryStage);
-				}
-				else if (event.getCode().equals(KeyCode.R))
-				{
-					weatherFactor = .87;
-					try
-					{
-						double rangeVal = getRangeDouble() * weatherFactor;
-						weather.setText(String.format("Rain %.1f", rangeVal));
-						calculateAndShow();
-					}
-					catch (Exception e)
-					{
-					}
-				}
-				else if (event.getCode().equals(KeyCode.S))
-				{
-					weatherFactor = 1.0;
-					try
-					{
-						double rangeVal = getRangeDouble() * weatherFactor;
-						weather.setText(String.format("Sun %.1f", rangeVal));
-						calculateAndShow();
-					}
-					catch (Exception e)
-					{
-					}
-				}
-				else if (event.getCode().equals(KeyCode.C))
-				{
-					weatherFactor = .93;
-					try
-					{
-						double rangeVal = getRangeDouble() * weatherFactor;
-						weather.setText(String.format("Clouds %.1f", rangeVal));
-						calculateAndShow();
-					}
-					catch (Exception e)
-					{
-					}
-				}
+		weatherModel = new WeatherModel();
+		weatherModel
+				.addListener((ObservableValue<? extends Weather> observable, Weather oldValue, Weather newValue) -> {
+					calculateAndShow();
+				});
 
-			});
-			StackPane pane = new StackPane();
-			Button info = new Button("?");
-			info.setTranslateY(-65.0);
-			info.setTranslateX(-15.0);
-			info.setOnMouseClicked(event -> {
+		BorderPane root = new BorderPane();
+		root.setOnKeyReleased(event -> {
+			if (event.getCode().equals(KeyCode.F1))
+			{
 				new InfoDlg(primaryStage);
-			});
-			Button close = new Button("X");
-			close.setTranslateY(-65.0);
-			close.setTranslateX(15.0);
-			close.setOnMouseClicked(event -> {
-				Platform.exit();
-			});
-			weather = new Label("Sun");
-			weather.setTranslateY(65.0);
+			}
+			else if (event.getCode().equals(KeyCode.F4))
+			{
+				weatherModel.setSelected(Weather.Rain);
+			}
+			else if (event.getCode().equals(KeyCode.F2))
+			{
+				weatherModel.setSelected(Weather.Sun);
+			}
+			else if (event.getCode().equals(KeyCode.F3))
+			{
+				weatherModel.setSelected(Weather.Clouds);
+			}
 
-			pane.getChildren().add(createWindRose());
-			pane.getChildren().add(createIOGui());
-			pane.getChildren().add(info);
-			pane.getChildren().add(close);
-			pane.getChildren().add(weather);
+		});
 
-			root.setCenter((Node) pane);
-			Scene scene = new Scene(root, 200.0, 200.0);
-			scene.setFill(null);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			addMouseListeners(primaryStage, root);
-			range.requestFocus();
-			wind.requestFocus();
-			primaryStage.initStyle(StageStyle.TRANSPARENT);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		StackPane pane = new StackPane();
+		Button info = new Button("?");
+		info.setTranslateY(-65.0);
+		info.setTranslateX(-15.0);
+		info.setOnMouseClicked(event -> {
+			new InfoDlg(primaryStage);
+		});
+		Button close = new Button("X");
+		close.setTranslateY(-65.0);
+		close.setTranslateX(15.0);
+		close.setOnMouseClicked(event -> {
+			Platform.exit();
+		});
+		weather = new WeatherResult(weatherModel);
+		weather.setTranslateY(65.0);
+
+		Node node1 = createIOGui();
+		Node node2 = createWindRose();
+		pane.getChildren().add(node2);
+		pane.getChildren().add(node1);
+		pane.getChildren().add(info);
+		pane.getChildren().add(close);
+		pane.getChildren().add(weather);
+
+		root.setCenter((Node) pane);
+		Scene scene = new Scene(root, 200.0, 200.0);
+		scene.setFill(null);
+		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+		addMouseListeners(primaryStage, root);
+
+		primaryStage.initStyle(StageStyle.TRANSPARENT);
+		primaryStage.setScene(scene);
+		primaryStage.show();
 	}
 
 
@@ -143,41 +120,16 @@ public class Main extends Application
 
 	private Node createIOGui()
 	{
-		xVal = new Label();
-		xVal.setId("textnormal");
-		yVal = new Label();
-		yVal.setId("textnormal");
-		wind = new TextField("1.0");
-		wind.setId("textnormal");
-		wind.setMaxWidth(50.0);
-		wind.focusedProperty().addListener(listener -> {
-			try
-			{
-				wind.setText("" + getWindDouble());
-				calculateAndShow();
-				wind.setId("textnormal");
-				wind.selectPositionCaret(range.getText().length());
-			}
-			catch (Exception ex)
-			{
-				wind.setId("textred");
-			}
+		xVal = new XResult();
+		yVal = new YResult();
+		wind = new InputControl("1.0");
+		wind.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+			calculateAndShow();
 		});
-		range = new TextField("100.0");
-		range.setId("textnormal");
-		range.setMaxWidth(50.0);
-		range.focusedProperty().addListener(listener -> {
-			try
-			{
-				range.setText("" + getRangeDouble());
-				calculateAndShow();
-				range.setId("textnormal");
-				range.selectPositionCaret(range.getText().length());
-			}
-			catch (Exception ex)
-			{
-				range.setId("textred");
-			}
+
+		range = new InputControl("100.0");
+		range.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+			calculateAndShow();
 		});
 		VBox vb = new VBox();
 		vb.setMaxSize(100.0, 100.0);
@@ -200,7 +152,6 @@ public class Main extends Application
 		if (!text.isEmpty())
 		{
 			Label lb = new Label(text);
-			lb.getStyleClass().add("icons");
 			lb.setMinWidth(50.0);
 			hb.getChildren().add(lb);
 		}
@@ -216,77 +167,62 @@ public class Main extends Application
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;
+		RadioButton node = null;
 		while (idx < 16)
 		{
+			node = new RadioButton();
 			double x1 = radius * Math.sin(radiant * (double) idx) + 88.0;
 			double y1 = radius * Math.cos(radiant * (double) idx) + 85.0;
-			RadioButton node = new RadioButton();
 			node.setId("" + idx);
 			node.setTranslateX(x1);
 			node.setTranslateY(y1);
 			node.setToggleGroup(group);
+			final String id = node.getId();
 			node.selectedProperty().addListener(listener -> {
-				selectedDir.set(Integer.parseInt(node.getId()));
+				selectedDir.set(Integer.parseInt(id));
 			});
 			pane.getChildren().add(node);
 			++idx;
 		}
+		node.setSelected(true);
 		return pane;
 	}
 
 
 	private void calculateAndShow()
 	{
-		double[] windsVec = WindVectorCalculator.calcWindVectors(selectedDir.get(), getWindDouble());
-		showX(windsVec[0]);
 		try
 		{
+			double[] windsVec = WindVectorCalculator.calcWindVectors(selectedDir.get(), wind.getValue());
+			showX(windsVec[0]);
 			showY(windsVec[1]);
+
+			double rangeVal;
+			rangeVal = getTrueRange() + yVal.getDrift();
+			weather.setText(rangeVal);
 		}
 		catch (Exception ex)
 		{
-			// empty catch block
+			ex.printStackTrace();
 		}
 	}
 
 
-	private void showX(Double value)
+	private void showX(Double xVector) throws NumberFormatException
 	{
-		int direction = selectedDir.get();
-		String directionSign = direction > 1 && direction < 10 ? "> " : "< ";
-		xVal.setText(String.format(directionSign + outFormat, 0.0, value));
+		xVal.setText((double) selectedDir.get(), xVector, getTrueRange());
 	}
 
 
-	private void showY(Double value) throws Exception
+	private void showY(Double yVector) throws NumberFormatException
 	{
-		String directionSign = value > 0.0 ? "^" : "v";
-		double rangeVal = getRangeDouble() * weatherFactor;
-		yVal.setText(String.format(directionSign + outFormat, value / 100.0 * rangeVal, value));
+		yVal.setText(yVector, yVector, getTrueRange());
 	}
 
 
-	private double getWindDouble() throws NumberFormatException
+	private double getTrueRange() throws NumberFormatException
 	{
-		return Double.parseDouble(getWindString());
-	}
-
-
-	private String getWindString()
-	{
-		return wind.getText().trim().replace(",", ".");
-	}
-
-
-	private double getRangeDouble() throws Exception
-	{
-		return Double.parseDouble(getRangeString());
-	}
-
-
-	private String getRangeString()
-	{
-		return range.getText().trim().replace(",", ".");
+		return range.getValue() * weatherModel.getSelected().windFactor;
 	}
 
 
@@ -311,46 +247,9 @@ public class Main extends Application
 		}
 	}
 
-	private class Delta
+	private final static class Delta
 	{
 		double x;
 		double y;
-	}
-
-	private class InfoDlg
-	{
-		public InfoDlg(Stage primaryStage)
-		{
-			Stage dialog = new Stage(StageStyle.TRANSPARENT);
-			dialog.initModality(Modality.WINDOW_MODAL);
-			dialog.initOwner(primaryStage);
-			HBox hb = new HBox();
-			Label lb = new Label();
-			String text = "Driver 1,6\nW3/5  1,3\nI3/4   1\ni5      .8\ni6      .7\ni7-9   .6\nPW    .55\nAW    .5\nSW    1\n\nBy Shotlong \u00a9 2016 V1.1";
-			lb.setText(text);
-			lb.setId("textnormal");
-			hb.setId("modal-dialog");
-			Button bt = new Button();
-			bt.setOnKeyReleased(event -> {
-				if (event.getCode().equals(KeyCode.ESCAPE))
-				{
-					primaryStage.getScene().getRoot().setEffect(null);
-					dialog.close();
-				}
-
-			});
-			// bt.setVisible(false);
-			hb.getChildren().add(bt);
-			hb.getChildren().add(lb);
-			lb.requestFocus();
-			dialog.setScene(new Scene(hb, Color.TRANSPARENT));
-			dialog.getScene().getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			primaryStage.getScene().getRoot().setEffect((Effect) new BoxBlur());
-			dialog.setX(primaryStage.getX());
-			dialog.setY(primaryStage.getY());
-			dialog.setWidth(200);
-			dialog.setHeight(200);
-			dialog.show();
-		}
 	}
 }
