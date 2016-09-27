@@ -14,6 +14,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -54,7 +55,7 @@ public class Main extends Application
 				.addListener((ObservableValue<? extends Weather> observable, Weather oldValue, Weather newValue) -> {
 					calculateAndShow();
 				});
-
+		weather = new WeatherResult(weatherModel);
 		BorderPane root = new BorderPane();
 		root.setOnKeyReleased(event -> {
 			if (event.getCode().equals(KeyCode.F1))
@@ -76,29 +77,29 @@ public class Main extends Application
 
 		});
 
-		StackPane pane = new StackPane();
+		VBox pane = new VBox();
+		HBox hb = new HBox();
 		Button info = new Button("?");
-		info.setTranslateY(-65.0);
-		info.setTranslateX(-15.0);
 		info.setOnMouseClicked(event -> {
 			new InfoDlg(primaryStage);
 		});
 		Button close = new Button("X");
-		close.setTranslateY(-65.0);
-		close.setTranslateX(15.0);
 		close.setOnMouseClicked(event -> {
 			Platform.exit();
 		});
-		weather = new WeatherResult(weatherModel);
-		weather.setTranslateY(65.0);
+		hb.getChildren().add(info);
+		hb.setAlignment(Pos.CENTER);
+		hb.getChildren().add(close);
+		
+	
 
+		pane.setAlignment(Pos.CENTER);
 		Node node1 = createIOGui();
 		Node node2 = createWindRose();
 		pane.getChildren().add(node2);
 		pane.getChildren().add(node1);
-		pane.getChildren().add(info);
-		pane.getChildren().add(close);
 		pane.getChildren().add(weather);
+		pane.getChildren().add(hb);
 
 		root.setCenter((Node) pane);
 		Scene scene = new Scene(root, 200.0, 200.0);
@@ -126,34 +127,35 @@ public class Main extends Application
 		wind.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
 			calculateAndShow();
 		});
-
 		range = new InputControl("100.0");
 		range.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
 			calculateAndShow();
 		});
 		VBox vb = new VBox();
 		vb.setMaxSize(100.0, 100.0);
-		vb.getChildren().add(createIO("Wind", wind));
-		vb.getChildren().add(createIO("Range", range));
+		vb.getChildren().add(createIO(wind, "Wind"));
+		vb.getChildren().add(createIO(range, "Range"));
 		StackPane p = new StackPane();
 		Line ln = new Line(100.0, 0.0, 200.0, 0.0);
 		StackPane.setMargin(ln, new Insets(8.0, 8.0, 8.0, 8.0));
 		p.getChildren().add(ln);
 		vb.getChildren().add(p);
-		vb.getChildren().add(createIO("", yVal));
-		vb.getChildren().add(createIO("", xVal));
+		vb.getChildren().add(createIO(yVal));
+		vb.getChildren().add(createIO(xVal));
 		return vb;
 	}
 
 
-	private Node createIO(String text, Node ioNode)
+	private Node createIO(Node ioNode, String... text)
 	{
 		HBox hb = new HBox();
-		if (!text.isEmpty())
+		hb.setAlignment(Pos.CENTER);
+		if (text.length == 1)
 		{
-			Label lb = new Label(text);
+			Label lb = new Label(text[0]);
 			lb.setMinWidth(50.0);
 			hb.getChildren().add(lb);
+			hb.setAlignment(Pos.CENTER);
 		}
 		hb.getChildren().add(ioNode);
 		return hb;
@@ -172,7 +174,7 @@ public class Main extends Application
 		{
 			node = new RadioButton();
 			double x1 = radius * Math.sin(radiant * (double) idx) + 88.0;
-			double y1 = radius * Math.cos(radiant * (double) idx) + 85.0;
+			double y1 = radius * Math.cos(radiant * (double) idx) + 70;
 			node.setId("" + idx);
 			node.setTranslateX(x1);
 			node.setTranslateY(y1);
@@ -198,7 +200,7 @@ public class Main extends Application
 			showY(windsVec[1]);
 
 			double rangeVal;
-			rangeVal = getTrueRange() + yVal.getDrift();
+			rangeVal = getTrueRange();
 			weather.setText(rangeVal);
 		}
 		catch (Exception ex)
@@ -222,7 +224,7 @@ public class Main extends Application
 
 	private double getTrueRange() throws NumberFormatException
 	{
-		return range.getValue() * weatherModel.getSelected().windFactor;
+		return range.getValue() * weatherModel.getSelected().windFactor + yVal.getDrift();
 	}
 
 
