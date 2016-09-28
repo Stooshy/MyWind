@@ -19,7 +19,7 @@ public final class InfoDlg
 		dialog.initOwner(primaryStage);
 		HBox hb = new HBox();
 		Label lb = new Label();
-		String text = "Driver 1,6\nW3/5  1,3\nI3/4   1\ni5      .8\ni6      .7\ni7-9   .6\nPW    .55\nAW    .5\nSW    1\nWeather: F2 - F4\nBy Shotlong \u00a9 2016 V1.4";
+		String text = "Driver 1,6\nW3/5  1,3\nI3/4   1\ni5      .8\ni6      .7\ni7-9   .6\nPW    .55\nAW    .5\nSW    1\nWeather: F2 - F4\nBy Shotlong \u00a9 2016 V1.5";
 		lb.setText(text);
 		lb.setId("textnormal");
 		hb.setId("modal-dialog");

@@ -5,6 +5,12 @@
     -fx-scale-shape     : true; 
     -fx-background-color: rgba(95.0, 158.0, 160.0, 0.9);
 }
+.radio-button {   
+     -fx-content-display :  graphic-only;
+     -fx-background-insets: 0;
+     -visibility : hidden  ;
+     -fx-cursor : hand  ;
+}
 .button
 {
 	-fx-background-color: transparent;

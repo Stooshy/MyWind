@@ -40,7 +40,7 @@ public class Main extends Application
 	private WeatherResult weather;
 	private IntegerProperty selectedDir;
 	private WeatherModel weatherModel;
-
+	private final double size = 200.0;
 
 	public void start(Stage primaryStage)
 	{
@@ -77,6 +77,7 @@ public class Main extends Application
 
 		});
 
+		
 		VBox pane = new VBox();
 		HBox hb = new HBox();
 		Button info = new Button("?");
@@ -90,19 +91,16 @@ public class Main extends Application
 		hb.getChildren().add(info);
 		hb.setAlignment(Pos.CENTER);
 		hb.getChildren().add(close);
-		
-	
-
+		hb.setMaxSize(30, 30);
 		pane.setAlignment(Pos.CENTER);
-		Node node1 = createIOGui();
-		Node node2 = createWindRose();
-		pane.getChildren().add(node2);
+		Node node2 = createIOGui();
+		Node node1 = createWindRose(size);
 		pane.getChildren().add(node1);
-		pane.getChildren().add(weather);
 		pane.getChildren().add(hb);
-
-		root.setCenter((Node) pane);
-		Scene scene = new Scene(root, 200.0, 200.0);
+		pane.getChildren().add(weather);
+		pane.getChildren().add(node2);
+		root.setTop(pane);
+		Scene scene = new Scene(root, size, size);
 		scene.setFill(null);
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 		addMouseListeners(primaryStage, root);
@@ -162,10 +160,10 @@ public class Main extends Application
 	}
 
 
-	private Node createWindRose()
+	private Node createWindRose(double size)
 	{
 		double radiant = Math.toRadians(22.5);
-		double radius = 90.0;
+		double radius = size / 2 - 10;
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;
@@ -173,8 +171,8 @@ public class Main extends Application
 		while (idx < 16)
 		{
 			node = new RadioButton();
-			double x1 = radius * Math.sin(radiant * (double) idx) + 88.0;
-			double y1 = radius * Math.cos(radiant * (double) idx) + 70;
+			double x1 = radius * Math.sin(radiant * (double) idx) + radius - 3 ;
+			double y1 = radius * Math.cos(radiant * (double) idx) + radius - 3;
 			node.setId("" + idx);
 			node.setTranslateX(x1);
 			node.setTranslateY(y1);
