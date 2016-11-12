@@ -1,15 +1,16 @@
 package application;
 
+import application.gui.DoubleInputControl;
 import application.gui.InfoDlg;
-import application.gui.InputControl;
-import application.gui.WeatherResult;
+import application.gui.Result;
 import application.gui.XResult;
 import application.gui.YResult;
+import application.model.RangeModel;
 import application.model.WeatherModel;
 import application.model.WeatherModel.Weather;
-import application.model.WindVectorCalculator;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
@@ -21,7 +22,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -33,77 +33,34 @@ import javafx.stage.StageStyle;
 
 public class Main extends Application
 {
-	private InputControl wind;
-	private InputControl range;
-	private XResult xVal;
-	private YResult yVal;
-	private WeatherResult weather;
-	private IntegerProperty selectedDir;
-	private WeatherModel weatherModel;
-	private final double size = 200.0;
+	private final double width = 400.0;
+
 
 	public void start(Stage primaryStage)
 	{
 		primaryStage.setTitle("SO MyWind");
-		selectedDir = new SimpleIntegerProperty();
-		selectedDir.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-			calculateAndShow();
-		});
 
-		weatherModel = new WeatherModel();
-		weatherModel
-				.addListener((ObservableValue<? extends Weather> observable, Weather oldValue, Weather newValue) -> {
-					calculateAndShow();
-				});
-		weather = new WeatherResult(weatherModel);
-		BorderPane root = new BorderPane();
-		root.setOnKeyReleased(event -> {
-			if (event.getCode().equals(KeyCode.F1))
-			{
-				new InfoDlg(primaryStage);
-			}
-			else if (event.getCode().equals(KeyCode.F4))
-			{
-				weatherModel.setSelected(Weather.Rain);
-			}
-			else if (event.getCode().equals(KeyCode.F2))
-			{
-				weatherModel.setSelected(Weather.Sun);
-			}
-			else if (event.getCode().equals(KeyCode.F3))
-			{
-				weatherModel.setSelected(Weather.Clouds);
-			}
+		WeatherModel weatherModel = new WeatherModel();
+		RangeModel rangeModel = new RangeModel();
+		Result result = new Result();
+		weatherModel.addListener(result);
+		weatherModel.addListener(rangeModel);
+		rangeModel.addListener(result);
+		weatherModel.setSelected(Weather.Sun);
 
-		});
+		BorderPane root = createRoot(primaryStage, weatherModel);
+		addMouseListeners(primaryStage, root);
+		VBox vb = new VBox();
+		vb.setAlignment(Pos.CENTER);
+		vb.getChildren().add(createWindRose(width / 2 - 10, rangeModel));
+		vb.getChildren().add(createButtons(primaryStage));
+		vb.getChildren().add(result);
+		vb.getChildren().add(createInputControls(rangeModel));
+		root.setTop(vb);
 
-		
-		VBox pane = new VBox();
-		HBox hb = new HBox();
-		Button info = new Button("?");
-		info.setOnMouseClicked(event -> {
-			new InfoDlg(primaryStage);
-		});
-		Button close = new Button("X");
-		close.setOnMouseClicked(event -> {
-			Platform.exit();
-		});
-		hb.getChildren().add(info);
-		hb.setAlignment(Pos.CENTER);
-		hb.getChildren().add(close);
-		hb.setMaxSize(30, 30);
-		pane.setAlignment(Pos.CENTER);
-		Node node2 = createIOGui();
-		Node node1 = createWindRose(size);
-		pane.getChildren().add(node1);
-		pane.getChildren().add(hb);
-		pane.getChildren().add(weather);
-		pane.getChildren().add(node2);
-		root.setTop(pane);
-		Scene scene = new Scene(root, size, size);
+		Scene scene = new Scene(root, width, width);
 		scene.setFill(null);
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-		addMouseListeners(primaryStage, root);
 
 		primaryStage.initStyle(StageStyle.TRANSPARENT);
 		primaryStage.setScene(scene);
@@ -117,24 +74,71 @@ public class Main extends Application
 	}
 
 
-	private Node createIOGui()
+	public BorderPane createRoot(Stage primaryStage, WeatherModel model)
 	{
-		xVal = new XResult();
-		yVal = new YResult();
-		wind = new InputControl("1.0");
-		wind.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-			calculateAndShow();
+		BorderPane root = new BorderPane();
+		root.setOnKeyReleased(event -> {
+			switch (event.getCode())
+			{
+			case F1:
+				new InfoDlg(primaryStage);
+				break;
+			case F2:
+			case F3:
+			case F4:
+				model.setSelected(Weather.getWeather(event.getCode()));
+				break;
+			default:
+				break;
+			}
 		});
-		range = new InputControl("100.0");
+		return root;
+	}
+
+
+	private Node createButtons(Stage primaryStage)
+	{
+		Button info = new Button("?");
+		info.setOnMouseClicked(event -> {
+			new InfoDlg(primaryStage);
+		});
+		Button close = new Button("X");
+		close.setOnMouseClicked(event -> {
+			Platform.exit();
+		});
+		HBox hb = new HBox();
+		hb.getChildren().add(info);
+		hb.setAlignment(Pos.CENTER);
+		hb.getChildren().add(close);
+		hb.setMaxSize(30, 30);
+
+		return hb;
+	}
+
+
+	private Node createInputControls(RangeModel rModel)
+	{
+		XResult xVal = new XResult();
+		YResult yVal = new YResult();
+		DoubleInputControl range = new DoubleInputControl();
 		range.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-			calculateAndShow();
+			rModel.setRange(newValue);
 		});
+		rModel.addListener((InvalidationListener) xVal);
+		rModel.addListener((InvalidationListener) yVal);
+		DoubleInputControl wind = new DoubleInputControl();
+		wind.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+			rModel.setWind(newValue);
+		});
+		range.setValue(100);
+		wind.setValue(1);
+
 		VBox vb = new VBox();
-		vb.setMaxSize(100.0, 100.0);
+		vb.setMaxSize(width / 2, width / 2);
 		vb.getChildren().add(createIO(wind, "Wind"));
 		vb.getChildren().add(createIO(range, "Range"));
 		StackPane p = new StackPane();
-		Line ln = new Line(100.0, 0.0, 200.0, 0.0);
+		Line ln = new Line(width / 2, 0.0, width, 0.0);
 		StackPane.setMargin(ln, new Insets(8.0, 8.0, 8.0, 8.0));
 		p.getChildren().add(ln);
 		vb.getChildren().add(p);
@@ -160,22 +164,24 @@ public class Main extends Application
 	}
 
 
-	private Node createWindRose(double size)
+	private Node createWindRose(double radius, RangeModel rModel)
 	{
-		double radiant = Math.toRadians(22.5);
-		double radius = size / 2 - 10;
+		int marks = 16;
+		final IntegerProperty selectedDir = new SimpleIntegerProperty();
+		selectedDir.addListener(rModel);
+		double radiant = Math.toRadians(360 / marks);
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;
 		RadioButton node = null;
-		while (idx < 16)
+		while (idx < marks)
 		{
 			node = new RadioButton();
-			double x1 = radius * Math.sin(radiant * (double) idx) + radius - 3 ;
-			double y1 = radius * Math.cos(radiant * (double) idx) + radius - 3;
-			node.setId("" + idx);
+			double x1 = radius * Math.sin(radiant * (double) idx) + radius + 1;
+			double y1 = radius * Math.cos(radiant * (double) idx) + radius + 1;
 			node.setTranslateX(x1);
 			node.setTranslateY(y1);
+			node.setId("" + idx);
 			node.setToggleGroup(group);
 			final String id = node.getId();
 			node.selectedProperty().addListener(listener -> {
@@ -186,43 +192,6 @@ public class Main extends Application
 		}
 		node.setSelected(true);
 		return pane;
-	}
-
-
-	private void calculateAndShow()
-	{
-		try
-		{
-			double[] windsVec = WindVectorCalculator.calcWindVectors(selectedDir.get(), wind.getValue());
-			showX(windsVec[0]);
-			showY(windsVec[1]);
-
-			double rangeVal;
-			rangeVal = getTrueRange();
-			weather.setText(rangeVal);
-		}
-		catch (Exception ex)
-		{
-			ex.printStackTrace();
-		}
-	}
-
-
-	private void showX(Double xVector) throws NumberFormatException
-	{
-		xVal.setText((double) selectedDir.get(), xVector, getTrueRange());
-	}
-
-
-	private void showY(Double yVector) throws NumberFormatException
-	{
-		yVal.setText(yVector, yVector, getTrueRange());
-	}
-
-
-	private double getTrueRange() throws NumberFormatException
-	{
-		return range.getValue() * weatherModel.getSelected().windFactor + yVal.getDrift();
 	}
 
 

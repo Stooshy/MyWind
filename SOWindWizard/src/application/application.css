@@ -1,15 +1,12 @@
 .root{
-    -fx-border-radius: 150.0;
-    -fx-background-radius: 150.0;
-    -fx-padding: 5.0;
+    -fx-background-radius: 200;
     -fx-scale-shape     : true; 
     -fx-background-color: rgba(95.0, 158.0, 160.0, 0.9);
 }
 .radio-button {   
      -fx-content-display :  graphic-only;
-     -fx-background-insets: 0;
-     -visibility : hidden  ;
-     -fx-cursor : hand  ;
+     -visibility : hidden;
+     -fx-cursor : hand;
 }
 .button
 {
@@ -27,10 +24,6 @@
 #textnormal
 {
 	-fx-text-fill: black; -fx-font-weight: bold;
-}
-#textred
-{
-	-fx-text-fill: red; -fx-font-weight: bold;
 }
 .modal-dialog {
   -fx-padding: 5.0;

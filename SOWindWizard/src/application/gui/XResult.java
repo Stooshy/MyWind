@@ -1,27 +1,27 @@
 package application.gui;
 
+import application.model.RangeModel;
+import javafx.beans.Observable;
+
 public final class XResult extends ResultDisplay
 {
 
 	public XResult()
 	{
-		formatString = "%10.1f y | %.1f %%";
+		formatString = "%s%2.1f y | %.1f%%";
 	}
 
 
 	@Override
-	public void setText(double value, Object... args)
+	public void invalidated(Observable observable)
 	{
-		String preFix = value > 1 && value < 10 ? "> " : "< ";
-
-		Object[] formatArgs = args;
-		int n = formatArgs.length;
-		if (n < 2)
-			throw new IllegalArgumentException("Not enough arguments: 2");
-
-		super.setText(String.format(preFix + formatString, (double) formatArgs[0] / 100.0 * (double) formatArgs[1],
-				formatArgs[0]));
-
+		if (observable instanceof RangeModel)
+		{
+			RangeModel model = (RangeModel) observable;
+			String preFix = model.getDirection() > 1 && model.getDirection() < 10 ? "> " : "< ";
+			super.setText(String.format(formatString, preFix, model.getXDriftRel() * model.getTrueRange(),
+					model.getXDriftAbs()));
+		}
 	}
 
 }

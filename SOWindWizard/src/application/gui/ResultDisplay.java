@@ -1,8 +1,9 @@
 package application.gui;
 
+import javafx.beans.InvalidationListener;
 import javafx.scene.control.Label;
 
-public abstract class ResultDisplay extends Label
+public abstract class ResultDisplay extends Label implements InvalidationListener
 {
 	protected String formatString;
 
@@ -11,8 +12,5 @@ public abstract class ResultDisplay extends Label
 	{
 		setId("textnormal");
 	}
-
-
-	public abstract void setText(double preFix, Object... args);
 
 }
