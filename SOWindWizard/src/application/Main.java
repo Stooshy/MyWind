@@ -33,7 +33,7 @@ import javafx.stage.StageStyle;
 
 public class Main extends Application
 {
-	private final double width = 400.0;
+	private final double width = 200.0;
 
 
 	public void start(Stage primaryStage)
