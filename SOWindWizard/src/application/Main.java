@@ -169,7 +169,7 @@ public class Main extends Application
 		int marks = 16;
 		final IntegerProperty selectedDir = new SimpleIntegerProperty();
 		selectedDir.addListener(rModel);
-		double radiant = Math.toRadians(360 / marks);
+		double radiant = Math.toRadians(22.5);
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;

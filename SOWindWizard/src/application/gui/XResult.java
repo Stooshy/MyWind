@@ -19,8 +19,7 @@ public final class XResult extends ResultDisplay
 		{
 			RangeModel model = (RangeModel) observable;
 			String preFix = model.getDirection() > 1 && model.getDirection() < 10 ? "> " : "< ";
-			super.setText(String.format(formatString, preFix, model.getXDriftRel() * model.getTrueRange(),
-					model.getXDriftAbs()));
+			super.setText(String.format(formatString, preFix, model.getXDriftAbs(), model.getXDriftRel()));
 		}
 	}
 

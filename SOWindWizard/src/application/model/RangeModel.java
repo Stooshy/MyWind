@@ -70,31 +70,31 @@ public final class RangeModel implements Observable, InvalidationListener
 
 	private void calcTrueRange()
 	{
-		setTrueRange(range * weather.windFactor - windsDrifts[1]);
+		setTrueRange(range * weather.windFactor - getYDriftAbs());
 	}
 
 
 	public double getYDriftRel()
 	{
-		return (double) windsDrifts[1] / 100.0 * windValue.get();
+		return windsDrifts[1];
 	}
 
 
 	public double getXDriftAbs()
 	{
-		return windsDrifts[0];
+		return getXDriftRel() / 100 * range;
 	}
 
 
 	public double getYDriftAbs()
 	{
-		return windsDrifts[1];
+		return getYDriftRel() / 100 * range;
 	}
 
 
 	public double getXDriftRel()
 	{
-		return (double) windsDrifts[0] / 100.0 * windValue.get();
+		return windsDrifts[0];
 	}
 
 

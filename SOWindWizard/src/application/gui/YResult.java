@@ -7,7 +7,7 @@ public final class YResult extends ResultDisplay
 {
 	public YResult()
 	{
-		formatString = "%2.1f y | %.1f%%";
+		formatString = "%2.1f y | %1.1f%%";
 	}
 
 
@@ -18,7 +18,7 @@ public final class YResult extends ResultDisplay
 		{
 			RangeModel model = (RangeModel) observable;
 			super.setText(
-					String.format(formatString, model.getYDriftRel() * model.getTrueRange(), model.getYDriftAbs()));
+					String.format(formatString, model.getYDriftAbs(), model.getYDriftRel()));
 		}
 	}
 
