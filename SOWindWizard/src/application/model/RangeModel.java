@@ -16,7 +16,7 @@ public final class RangeModel implements Observable, InvalidationListener
 	private final DoubleProperty trueRange;
 	private final DoubleProperty windValue;
 	private int direction;
-	private double[] windsDrifts;
+	private double[] windDrifts;
 	private double range;
 	private Weather weather;
 	private final List<InvalidationListener> listeners;
@@ -58,7 +58,7 @@ public final class RangeModel implements Observable, InvalidationListener
 		{
 			double _value = Double.parseDouble(value);
 			this.windValue.set(_value);
-			windsDrifts = WindVectorCalculator.calcWindVectors(direction, _value);
+			windDrifts = WindVectorCalculator.calcWindVectors(direction, _value);
 			calcTrueRange();
 		}
 		catch (NumberFormatException ex)
@@ -70,31 +70,31 @@ public final class RangeModel implements Observable, InvalidationListener
 
 	private void calcTrueRange()
 	{
-		setTrueRange(range * weather.windFactor - getYDriftAbs());
+		setTrueRange(range * getYDriftRel());
 	}
 
 
 	public double getYDriftRel()
 	{
-		return windsDrifts[1];
+		return weather.windFactor - windDrifts[1] / 100;
 	}
 
 
 	public double getXDriftAbs()
 	{
-		return getXDriftRel() / 100 * range;
+		return (getXDriftRel() / 100) * range;
 	}
 
 
 	public double getYDriftAbs()
 	{
-		return getYDriftRel() / 100 * range;
+		return  (1 - getYDriftRel()) * range;
 	}
 
 
 	public double getXDriftRel()
 	{
-		return windsDrifts[0];
+		return windDrifts[0];
 	}
 
 
@@ -107,7 +107,7 @@ public final class RangeModel implements Observable, InvalidationListener
 	private void setDirection(int value)
 	{
 		direction = value;
-		windsDrifts = WindVectorCalculator.calcWindVectors(value, windValue.get());
+		windDrifts = WindVectorCalculator.calcWindVectors(value, windValue.get());
 		calcTrueRange();
 	}
 

@@ -10,7 +10,8 @@ public final class WindVectorCalculator {
     /***
      * Calculates X&Y components of wind for a given direction.
      * @param direction of wind from 0-15<p> 18:00 => 0</p> <p> 17:00 => 1 ... </p>
-     * @param wind in m/s. 
+     * @param wind in m/s.
+     * @return x,y vectors 
      */
     public static double[] calcWindVectors(int direction, double wind) {
         return new double[]{wind * factorsX[direction], wind * factorsY[direction]};

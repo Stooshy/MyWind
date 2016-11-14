@@ -2,7 +2,7 @@ package application;
 
 import application.gui.DoubleInputControl;
 import application.gui.InfoDlg;
-import application.gui.Result;
+import application.gui.RangeResult;
 import application.gui.XResult;
 import application.gui.YResult;
 import application.model.RangeModel;
@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -42,7 +43,7 @@ public class Main extends Application
 
 		WeatherModel weatherModel = new WeatherModel();
 		RangeModel rangeModel = new RangeModel();
-		Result result = new Result();
+		RangeResult result = new RangeResult();
 		weatherModel.addListener(result);
 		weatherModel.addListener(rangeModel);
 		rangeModel.addListener(result);
@@ -61,13 +62,12 @@ public class Main extends Application
 		Scene scene = new Scene(root, width, width);
 		scene.setFill(null);
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-
+		primaryStage.getIcons().add(new Image( getClass().getResourceAsStream("res/Golf-Club-Green-icon.png")));
 		primaryStage.initStyle(StageStyle.TRANSPARENT);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-
-
+	
 	public static void main(String[] args)
 	{
 		Main.launch((String[]) args);
@@ -169,7 +169,7 @@ public class Main extends Application
 		int marks = 16;
 		final IntegerProperty selectedDir = new SimpleIntegerProperty();
 		selectedDir.addListener(rModel);
-		double radiant = Math.toRadians(22.5);
+		double radiant = Math.toRadians( 360.0 / marks);
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;

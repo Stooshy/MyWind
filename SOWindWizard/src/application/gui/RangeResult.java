@@ -2,20 +2,12 @@ package application.gui;
 
 import application.model.RangeModel;
 import application.model.WeatherModel;
-import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.scene.control.Label;
 
-public class Result extends Label implements InvalidationListener
+public class RangeResult extends ResultLabel
 {
 	private String name;
 	private double range;
-
-
-	public Result()
-	{
-		setId("textnormal");
-	}
 
 
 	@Override
@@ -32,7 +24,14 @@ public class Result extends Label implements InvalidationListener
 			WeatherModel weatherModel = (WeatherModel) observable;
 			name = weatherModel.getName();
 		}
-		super.setText(String.format("%s%6.1f", name, range));
+		super.setText(String.format(formatString, name, range));
+	}
+
+
+	@Override
+	String getFormat()
+	{
+		return "%s%6.1f";
 	}
 
 }
