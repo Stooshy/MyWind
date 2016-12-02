@@ -5,28 +5,25 @@ import java.util.List;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.scene.input.KeyCode;
 
 public final class WeatherModel implements Observable
 {
-	private final ObjectProperty<Weather> selected = new SimpleObjectProperty<Weather>();
+	private Weather selected = Weather.Sun;
 	private final List<InvalidationListener> listeners;
-	
+
 	public enum Weather
 	{
-		Sun(1.0, KeyCode.F2), Clouds(1.07, KeyCode.F3), Rain(1.13, KeyCode.F4);
+		Sun(0, KeyCode.F2), Clouds(-6d, KeyCode.F3), Rain(-11d, KeyCode.F4);
 
-		public final double windFactor;
+		public final double weatherFactor;
 		public final KeyCode id;
 
 
 		Weather(double factor, KeyCode code)
 		{
 			id = code;
-			windFactor = factor;
+			weatherFactor = factor;
 		}
 
 
@@ -39,38 +36,37 @@ public final class WeatherModel implements Observable
 			}
 			throw new IllegalArgumentException("Not found: " + code.getName());
 		}
-
 	}
 
 
 	public WeatherModel()
 	{
 		listeners = new ArrayList<>();
-		setSelected(Weather.Sun);
 	}
 
 
 	public void setSelected(Weather value)
 	{
-		selected.set(value);
+		selected = value;
 		notifyListeners();
 	}
 
 
 	public Weather getSelected()
 	{
-		return selected.get();
+		return selected;
 	}
-	
+
+
+	public double getFactor()
+	{
+		return getSelected().weatherFactor;
+	}
+
+
 	public String getName()
 	{
 		return getSelected().name();
-	}
-
-
-	public void addListener(ChangeListener<Weather> toAdd)
-	{
-		selected.addListener(toAdd);
 	}
 
 
@@ -91,7 +87,6 @@ public final class WeatherModel implements Observable
 	public void removeListener(InvalidationListener listener)
 	{
 		listeners.remove(listener);
-
 	}
 
 }

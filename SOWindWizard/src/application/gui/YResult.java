@@ -11,13 +11,13 @@ public final class YResult extends ResultLabel
 		if (observable instanceof RangeModel)
 		{
 			RangeModel model = (RangeModel) observable;
-			super.setText(String.format(formatString, model.getYDriftAbs(), (1 - model.getYDriftRel()) * 100 ));
+			super.setText(String.format(formatString, model.getYDriftAbs(), model.getYDriftRel()));
 		}
 	}
 
 
 	@Override
-	String getFormat()
+	protected String getFormat()
 	{
 		return "%2.1f y | %.1f %%";
 	}

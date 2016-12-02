@@ -2,6 +2,7 @@ package application.gui;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 
 public class DoubleInputControl extends TextField
 {
@@ -11,9 +12,17 @@ public class DoubleInputControl extends TextField
 		super();
 		setId("textnormal");
 		setMaxWidth(50.0);
+		setOnKeyReleased(event -> {
+			if (event.getCode().equals(KeyCode.ENTER))
+			{
+				setText("" + getValue());
+			}
+		});
+
 		focusedProperty().addListener(listener -> {
 			setText("" + getValue());
 		});
+
 	}
 
 

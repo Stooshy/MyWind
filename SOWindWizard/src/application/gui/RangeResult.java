@@ -29,7 +29,7 @@ public class RangeResult extends ResultLabel
 
 
 	@Override
-	String getFormat()
+	protected String getFormat()
 	{
 		return "%s%6.1f";
 	}

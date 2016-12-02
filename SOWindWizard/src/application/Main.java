@@ -1,11 +1,20 @@
 package application;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import application.gui.DoubleInputControl;
 import application.gui.InfoDlg;
 import application.gui.RangeResult;
+import application.gui.SettingsDlg;
 import application.gui.XResult;
 import application.gui.YResult;
 import application.model.RangeModel;
+import application.model.UserData;
 import application.model.WeatherModel;
 import application.model.WeatherModel.Weather;
 import javafx.application.Application;
@@ -35,19 +44,21 @@ import javafx.stage.StageStyle;
 public class Main extends Application
 {
 	private final double width = 200.0;
+	private UserData uData;
 
 
 	public void start(Stage primaryStage)
 	{
 		primaryStage.setTitle("SO MyWind");
 
-		WeatherModel weatherModel = new WeatherModel();
 		RangeModel rangeModel = new RangeModel();
-		RangeResult result = new RangeResult();
-		weatherModel.addListener(result);
+		WeatherModel weatherModel = new WeatherModel();
+		uData = load();
+		if (uData != null && uData.getIsValid())
+			rangeModel.setUserFactor(uData.getUserFactor());
+
+		uData.addListener(rangeModel);
 		weatherModel.addListener(rangeModel);
-		rangeModel.addListener(result);
-		weatherModel.setSelected(Weather.Sun);
 
 		BorderPane root = createRoot(primaryStage, weatherModel);
 		addMouseListeners(primaryStage, root);
@@ -55,26 +66,28 @@ public class Main extends Application
 		vb.setAlignment(Pos.CENTER);
 		vb.getChildren().add(createWindRose(width / 2 - 10, rangeModel));
 		vb.getChildren().add(createButtons(primaryStage));
-		vb.getChildren().add(result);
-		vb.getChildren().add(createInputControls(rangeModel));
+		vb.getChildren().add(createIOControls(rangeModel, weatherModel));
 		root.setTop(vb);
+
+		weatherModel.setSelected(Weather.Sun);
 
 		Scene scene = new Scene(root, width, width);
 		scene.setFill(null);
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-		primaryStage.getIcons().add(new Image( getClass().getResourceAsStream("res/Golf-Club-Green-icon.png")));
+		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("res/Golf-Club-Green-icon.png")));
 		primaryStage.initStyle(StageStyle.TRANSPARENT);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-	
+
+
 	public static void main(String[] args)
 	{
 		Main.launch((String[]) args);
 	}
 
 
-	public BorderPane createRoot(Stage primaryStage, WeatherModel model)
+	private BorderPane createRoot(Stage primaryStage, WeatherModel model)
 	{
 		BorderPane root = new BorderPane();
 		root.setOnKeyReleased(event -> {
@@ -104,10 +117,16 @@ public class Main extends Application
 		});
 		Button close = new Button("X");
 		close.setOnMouseClicked(event -> {
+			save();
 			Platform.exit();
+		});
+		Button settings = new Button("S");
+		settings.setOnMouseClicked(event -> {
+			new SettingsDlg(primaryStage, uData);
 		});
 		HBox hb = new HBox();
 		hb.getChildren().add(info);
+		hb.getChildren().add(settings);
 		hb.setAlignment(Pos.CENTER);
 		hb.getChildren().add(close);
 		hb.setMaxSize(30, 30);
@@ -116,8 +135,59 @@ public class Main extends Application
 	}
 
 
-	private Node createInputControls(RangeModel rModel)
+	private void save()
 	{
+		String path = new File("").getAbsolutePath() + "\\UserData";
+		try (ObjectOutputStream aus = new ObjectOutputStream(new FileOutputStream(path)))
+		{
+			aus.writeObject(uData);
+		}
+		catch (IOException e)
+		{
+			// nothing to do
+		}
+	}
+
+
+	private UserData load()
+	{
+		UserData data = new UserData();
+
+		String path = new File("").getAbsolutePath() + "\\UserData";
+		File file = new File(path);
+		if (!file.exists())
+			return data;
+
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file)))
+		{
+			for (;;)
+			{
+				Object obj = in.readObject();
+				try
+				{
+					if (obj instanceof UserData)
+					{
+						return (UserData) obj;
+					}
+				}
+				catch (ClassCastException ignored)
+				{
+					return data;
+				}
+			}
+		}
+		catch (IOException | ClassNotFoundException e)
+		{
+			return data;
+		}
+	}
+
+
+	private Node createIOControls(RangeModel rModel, WeatherModel wModel)
+	{
+		RangeResult result = new RangeResult();
+		rModel.addListener(result);
+		wModel.addListener(result);
 		XResult xVal = new XResult();
 		YResult yVal = new YResult();
 		DoubleInputControl range = new DoubleInputControl();
@@ -142,6 +212,8 @@ public class Main extends Application
 		StackPane.setMargin(ln, new Insets(8.0, 8.0, 8.0, 8.0));
 		p.getChildren().add(ln);
 		vb.getChildren().add(p);
+		vb.setAlignment(Pos.CENTER);
+		vb.getChildren().add(result);
 		vb.getChildren().add(createIO(yVal));
 		vb.getChildren().add(createIO(xVal));
 		return vb;
@@ -169,7 +241,7 @@ public class Main extends Application
 		int marks = 16;
 		final IntegerProperty selectedDir = new SimpleIntegerProperty();
 		selectedDir.addListener(rModel);
-		double radiant = Math.toRadians( 360.0 / marks);
+		double radiant = Math.toRadians(360.0 / marks);
 		ToggleGroup group = new ToggleGroup();
 		Pane pane = new Pane();
 		int idx = 0;

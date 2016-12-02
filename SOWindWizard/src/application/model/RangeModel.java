@@ -3,51 +3,60 @@ package application.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import application.model.WeatherModel.Weather;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 
 public final class RangeModel implements Observable, InvalidationListener
 {
-
-	private final DoubleProperty trueRange;
-	private final DoubleProperty windValue;
+	private double trueRange;
+	private double windValue;
 	private int direction;
-	private double[] windDrifts;
+	private double[] windVector;
 	private double range;
-	private Weather weather;
+	private double weatherFactor;
+	private double userFactor = 2d;
 	private final List<InvalidationListener> listeners;
 
 
 	public RangeModel()
 	{
 		listeners = new ArrayList<>();
-		windValue = new SimpleDoubleProperty(1.0);
-		trueRange = new SimpleDoubleProperty(100);
-		weather = Weather.Sun;
+		windValue = 1.0;
+		trueRange = 100.0;
 		setWind("1.0");
+	}
+
+
+	public void setUserFactor(double value)
+	{
+		userFactor = value;
+		calcTrueRange();
+	}
+
+
+	public double getUserData()
+	{
+		return userFactor;
 	}
 
 
 	public double getTrueRange()
 	{
-		return trueRange.get();
+		return trueRange;
 	}
 
 
-	private void setWeather(Weather value)
+	private void setWeatherFactor(double value)
 	{
-		weather = value;
+		weatherFactor = value;
 		calcTrueRange();
 	}
 
 
 	private void setTrueRange(double value)
 	{
-		trueRange.set(value);
+		trueRange = value;
 		notifyListeners();
 	}
 
@@ -57,8 +66,8 @@ public final class RangeModel implements Observable, InvalidationListener
 		try
 		{
 			double _value = Double.parseDouble(value);
-			this.windValue.set(_value);
-			windDrifts = WindVectorCalculator.calcWindVectors(direction, _value);
+			windValue = _value;
+			windVector = WindVectorCalculator.calcWindVectors(direction, _value);
 			calcTrueRange();
 		}
 		catch (NumberFormatException ex)
@@ -70,31 +79,30 @@ public final class RangeModel implements Observable, InvalidationListener
 
 	private void calcTrueRange()
 	{
-		setTrueRange(range * getYDriftRel());
+		setTrueRange(range - getYDriftAbs());
 	}
 
 
+	/**
+	 * 
+	 * @return <b>e. g. rain & 1.0 headwind:</b> 1.13 + 2 * -0.98 = 1.13 - 3.1%
+	 *         further</b>
+	 */
 	public double getYDriftRel()
 	{
-		return weather.windFactor - windDrifts[1] / 100;
-	}
-
-
-	public double getXDriftAbs()
-	{
-		return (getXDriftRel() / 100) * range;
+		return weatherFactor + userFactor * windVector[1];
 	}
 
 
 	public double getYDriftAbs()
 	{
-		return  (1 - getYDriftRel()) * range;
+		return getYDriftRel() / 100d * range;
 	}
 
 
 	public double getXDriftRel()
 	{
-		return windDrifts[0];
+		return windVector[0];
 	}
 
 
@@ -107,7 +115,7 @@ public final class RangeModel implements Observable, InvalidationListener
 	private void setDirection(int value)
 	{
 		direction = value;
-		windDrifts = WindVectorCalculator.calcWindVectors(value, windValue.get());
+		windVector = WindVectorCalculator.calcWindVectors(value, windValue);
 		calcTrueRange();
 	}
 
@@ -151,14 +159,16 @@ public final class RangeModel implements Observable, InvalidationListener
 	{
 		if (observable instanceof IntegerProperty)
 		{
-			IntegerProperty value = (IntegerProperty) observable;
-			setDirection(value.get());
-
+			setDirection(((IntegerProperty) observable).get());
 		}
 		else if (observable instanceof WeatherModel)
 		{
-			WeatherModel weatherModel = (WeatherModel) observable;
-			setWeather(weatherModel.getSelected());
+			setWeatherFactor(((WeatherModel) observable).getFactor());
+		}
+		else if (observable instanceof UserData)
+		{
+			setUserFactor(((UserData) observable).getUserFactor());
 		}
 	}
+
 }

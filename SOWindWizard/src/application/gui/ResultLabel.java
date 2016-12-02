@@ -15,6 +15,6 @@ public abstract class ResultLabel extends Label implements InvalidationListener
 	}
 
 
-	abstract String getFormat();
+	protected abstract String getFormat();
 
 }

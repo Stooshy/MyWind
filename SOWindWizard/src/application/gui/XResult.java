@@ -11,16 +11,16 @@ public final class XResult extends ResultLabel
 		if (observable instanceof RangeModel)
 		{
 			RangeModel model = (RangeModel) observable;
-			String preFix = model.getDirection() > 1 && model.getDirection() < 10 ? "> " : "< ";
-			super.setText(String.format(formatString, preFix, model.getXDriftAbs(), model.getXDriftRel()));
+			String directionSign = model.getDirection() > 0 && model.getDirection() < 9 ? "> " : "< ";
+			super.setText(String.format(formatString, model.getXDriftRel(), directionSign));
 		}
 	}
 
 
 	@Override
-	String getFormat()
+	protected String getFormat()
 	{
-		return "%s%2.1f y | %.1f %%";
+		return "%.1f m/s %s";
 	}
 
 }
